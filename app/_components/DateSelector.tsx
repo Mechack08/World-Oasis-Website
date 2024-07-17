@@ -1,21 +1,25 @@
 "use client";
 
-import { isWithinInterval } from "date-fns";
+import {
+  differenceInDays,
+  isPast,
+  isSameDay,
+  isWithinInterval,
+} from "date-fns";
 import { DateRange, DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { Cabin, Settings } from "../_lib/data-types";
-import { useState } from "react";
 import { useReservation } from "../_context/ReservationContext";
 
-// function isAlreadyBooked(range, datesArr) {
-//   return (
-//     range.from &&
-//     range.to &&
-//     datesArr.some((date) =>
-//       isWithinInterval(date, { start: range.from, end: range.to })
-//     )
-//   );
-// }
+function isAlreadyBooked(range: DateRange | undefined, datesArr: Date[]) {
+  return (
+    range?.from &&
+    range?.to &&
+    datesArr.some((date) =>
+      isWithinInterval(date, { start: range?.from || "", end: range?.to || "" })
+    )
+  );
+}
 
 interface DateSelectorProps {
   cabin: Cabin;
@@ -26,16 +30,15 @@ interface DateSelectorProps {
 function DateSelector({ settings, bookedDates, cabin }: DateSelectorProps) {
   const { range, setRange, resetRange } = useReservation();
 
-  // CHANGE
-  const regularPrice = 23;
-  const discount = 23;
-  const numNights = 23;
-  const cabinPrice = 23;
-  // const range = { from: null, to: null };
+  const displayRange = isAlreadyBooked(range, bookedDates)
+    ? { from: undefined, to: undefined }
+    : range;
 
-  // SETTINGS
-  const { minBookingLength } = settings;
-  const { maxBookingLength } = settings;
+  const { regularPrice, discount } = cabin;
+  const numNights = differenceInDays(range?.to || "", range?.from || "");
+  const cabinPrice = numNights * (regularPrice - discount);
+
+  const { minBookingLength, maxBookingLength } = settings;
 
   return (
     <div className="flex flex-col justify-between">
@@ -49,8 +52,13 @@ function DateSelector({ settings, bookedDates, cabin }: DateSelectorProps) {
         toYear={new Date().getFullYear() + 5}
         captionLayout="dropdown"
         numberOfMonths={2}
-        onSelect={(range) => setRange(range)}
-        selected={range}
+        // onSelect={(range) => setRange(range)}
+        onSelect={setRange}
+        selected={displayRange}
+        disabled={(curDate) =>
+          isPast(curDate) ||
+          bookedDates.some((date) => isSameDay(date, curDate))
+        }
       />
 
       <div className="flex items-center justify-between px-8 bg-accent-500 text-primary-800 h-[72px]">

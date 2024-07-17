@@ -23,6 +23,40 @@ export async function signOutAction() {
   await signOut({ redirectTo: "/" });
 }
 
+type BookingData = {
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  numNights: number;
+  cabinPrice: number;
+  cabinId: number;
+};
+export async function createBooking(
+  bookingData: BookingData,
+  formData: FormData
+) {
+  const session = await checkUserStatus();
+
+  const newBooking = {
+    ...bookingData,
+    guestId: session.user!.guestId,
+    numGuests: Number(formData.get("numGuests")),
+    observations: String(formData.get("observations")).slice(0, 1000),
+    extrasPrice: 0,
+    totalPrice: bookingData.cabinPrice,
+    isPaid: false,
+    hasBreakfast: false,
+    status: "unconfirmed",
+  };
+
+  const { error } = await supabase.from("bookings").insert([newBooking]);
+
+  if (error) throw new Error("Booking could not be created");
+
+  revalidatePath(`/cabins/${bookingData.cabinId}`);
+
+  redirect("/cabins/thankyou");
+}
+
 export async function updateGuest(formData: FormData) {
   const nationalIdRegex = /^[0-9]{6,20}$/;
 

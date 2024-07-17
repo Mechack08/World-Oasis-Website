@@ -83,7 +83,7 @@ export async function getGuest(email: string): Promise<Guest> {
   return data;
 }
 
-interface Booking {
+interface ABooking {
   cabinId: number;
   numGuests: number;
   observations: string;
@@ -100,7 +100,7 @@ interface Booking {
   isPaid: boolean;
   guestId: number;
 }
-export async function getBooking(id: number): Promise<Booking> {
+export async function getBooking(id: number): Promise<ABooking> {
   const { data, error, count } = await supabase
     .from("bookings")
     .select("*")
@@ -115,7 +115,7 @@ export async function getBooking(id: number): Promise<Booking> {
   return data;
 }
 
-interface Booking {
+export interface Booking {
   id: number;
   guestId: number;
   startDate: string;
@@ -123,9 +123,9 @@ interface Booking {
   numNights: number;
   totalPrice: number;
   numGuests: number;
-  status: boolean;
+  status: "checked-out" | "checked-in" | "unconfirmed";
   created_at: string;
-  cabins: { name: string; image: string };
+  cabins: { name: string; image: string }[];
 }
 
 export async function getBookings(guestId: number): Promise<Booking[]> {
@@ -133,7 +133,7 @@ export async function getBookings(guestId: number): Promise<Booking[]> {
     .from("bookings")
     // We actually also need data on the cabins as well. But let's ONLY take the data that we actually need, in order to reduce downloaded data.
     .select(
-      "id, created_at, startDate, endDate, numNights, numGuests, totalPrice, guestId, cabinId, cabins(name, image)"
+      "id, created_at, startDate, endDate, numNights, numGuests, totalPrice, guestId, status, cabinId, cabins(name, image)"
     )
     .eq("guestId", guestId)
     .order("startDate");

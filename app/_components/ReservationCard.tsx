@@ -3,6 +3,7 @@ import { formatDistance, isPast, isToday, parseISO } from "date-fns";
 import { format } from "path";
 import DeleteReservation from "./DeleteReservation";
 import Link from "next/link";
+import { Booking } from "../_lib/data-service";
 
 export const formatDistanceFromNow = (dateStr: string) =>
   formatDistance(parseISO(dateStr), new Date(), {
@@ -10,21 +11,14 @@ export const formatDistanceFromNow = (dateStr: string) =>
   }).replace("about ", "");
 
 interface ReservationCardProps {
-  booking: {
-    id: number;
-    guestId: number;
-    startDate: string;
-    endDate: string;
-    numNights: number;
-    totalPrice: number;
-    numGuests: number;
-    status: boolean;
-    created_at: string;
-    cabins: { name: string; image: string };
-  };
+  booking: Booking;
+  onDeleteReservation: (id: number) => void;
 }
 
-function ReservationCard({ booking }: ReservationCardProps) {
+function ReservationCard({
+  booking,
+  onDeleteReservation,
+}: ReservationCardProps) {
   const {
     id,
     guestId,
@@ -94,7 +88,10 @@ function ReservationCard({ booking }: ReservationCardProps) {
               <PencilSquareIcon className="h-5 w-5 text-primary-600 group-hover:text-primary-800 transition-colors" />
               <span className="mt-1">Edit</span>
             </Link>
-            <DeleteReservation bookingId={id} />
+            <DeleteReservation
+              bookingId={id}
+              onDeleteReservation={onDeleteReservation}
+            />
           </>
         )}
       </div>
