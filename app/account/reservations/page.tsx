@@ -1,6 +1,7 @@
 import ReservationList from "@/app/_components/ReservationList";
+import { ExtendedUser } from "@/app/_lib/actions";
 import { auth } from "@/app/_lib/auth";
-import { getBookings } from "@/app/_lib/data-service";
+import { Booking, CabinBooked, getBookings } from "@/app/_lib/data-service";
 
 export const metadata = {
   title: "Reservation",
@@ -11,7 +12,9 @@ export default async function Page() {
 
   if (!session?.user) return;
 
-  const bookings = await getBookings(session?.user.guestId);
+  const user = session.user as ExtendedUser;
+
+  const bookings = await getBookings(user.guestId);
 
   return (
     <div>

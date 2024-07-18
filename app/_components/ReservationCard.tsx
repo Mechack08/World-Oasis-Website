@@ -1,9 +1,9 @@
 import { PencilSquareIcon } from "@heroicons/react/24/solid";
 import { formatDistance, isPast, isToday, parseISO } from "date-fns";
-import { format } from "path";
 import DeleteReservation from "./DeleteReservation";
 import Link from "next/link";
 import { Booking } from "../_lib/data-service";
+import { format } from "date-fns/format";
 
 export const formatDistanceFromNow = (dateStr: string) =>
   formatDistance(parseISO(dateStr), new Date(), {
@@ -29,8 +29,18 @@ function ReservationCard({
     numGuests,
     status,
     created_at,
-    cabins: { name, image },
+    cabins,
   } = booking;
+
+  let image = "";
+  let name = "";
+
+  if (cabins !== null && typeof cabins === "object" && !Array.isArray(cabins)) {
+    const { image: cabinImage, name: cabinName } = cabins;
+
+    image = cabinImage;
+    name = cabinName;
+  }
 
   return (
     <div className="flex border border-primary-800">

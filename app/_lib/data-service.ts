@@ -125,15 +125,20 @@ export interface Booking {
   numGuests: number;
   status: "checked-out" | "checked-in" | "unconfirmed";
   created_at: string;
-  cabins: { name: string; image: string }[];
+  cabins: CabinBooked | CabinBooked[];
+}
+
+export interface CabinBooked {
+  name: string;
+  image: string;
 }
 
 export async function getBookings(guestId: number): Promise<Booking[]> {
-  const { data, error, count } = await supabase
+  const { data, error } = await supabase
     .from("bookings")
     // We actually also need data on the cabins as well. But let's ONLY take the data that we actually need, in order to reduce downloaded data.
     .select(
-      "id, created_at, startDate, endDate, numNights, numGuests, totalPrice, guestId, status, cabinId, cabins(name, image)"
+      `id, created_at, startDate, endDate, numNights, numGuests, totalPrice, guestId, status, cabinId, cabins(name, image)`
     )
     .eq("guestId", guestId)
     .order("startDate");

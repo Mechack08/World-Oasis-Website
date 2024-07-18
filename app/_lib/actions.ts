@@ -5,6 +5,11 @@ import { auth, signIn, signOut } from "./auth";
 import { getBookings } from "./data-service";
 import { supabase } from "./supabase";
 import { revalidatePath } from "next/cache";
+import { User } from "next-auth";
+
+export interface ExtendedUser extends User {
+  guestId: number;
+}
 
 // Authentification
 async function checkUserStatus() {
@@ -12,7 +17,9 @@ async function checkUserStatus() {
 
   if (!session) throw new Error("You must be logged in");
 
-  return session;
+  const user = session.user as ExtendedUser;
+
+  return { session, user };
 }
 
 export async function signInAction() {
@@ -34,11 +41,11 @@ export async function createBooking(
   bookingData: BookingData,
   formData: FormData
 ) {
-  const session = await checkUserStatus();
+  const { user } = await checkUserStatus();
 
   const newBooking = {
     ...bookingData,
-    guestId: session.user!.guestId,
+    guestId: user.guestId,
     numGuests: Number(formData.get("numGuests")),
     observations: String(formData.get("observations")).slice(0, 1000),
     extrasPrice: 0,
@@ -75,7 +82,7 @@ export async function updateGuest(formData: FormData) {
   const { data, error } = await supabase
     .from("guests")
     .update(updateData)
-    .eq("id", session.user!.guestId)
+    .eq("id", session.user.guestId)
     .select()
     .single();
 
